@@ -62,7 +62,7 @@ Each operation will later enforce:
 
 1.  **Clone this repository**
     ```bash
-    git clone [https://github.com/](https://github.com/)<your-org>/forensic-chainguard.git
+    git clone https://github.com/harshithananjyala/cse540-forensic-chainguard.git
     cd forensic-chainguard
     ```
 
