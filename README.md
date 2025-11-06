@@ -118,7 +118,7 @@ Each operation will later enforce:
     # Expected: "DRAFT: Not implemented"
     ```
 
-Note: Deployment commands above are placeholders to show intent; final scripts will be provided in the implementation phase.
+**Note:** Deployment commands above are placeholders to show intent; final scripts will be provided in the implementation phase.
 
 ## How to Use (Draft Stage)
 At this milestone, only the function signatures and comments are available — not full implementations.
