@@ -8,10 +8,9 @@
 **Forensic Chainguard** is a blockchain-powered system designed to securely manage the lifecycle of forensic evidence — from collection to transfer, analysis, and final storage.  
 Traditional chain-of-custody processes rely heavily on manual records and centralized databases, which can be vulnerable to tampering or human error.
 
-This project uses **Hyperledger Fabric** to ensure that every interaction with an evidence item is **immutable, auditable, and cryptographically verifiable**.  
-Each action (check-in, check-out, transfer, or removal) is recorded on the blockchain through a smart contract, providing full traceability and integrity.
+This project uses **Hyperledger Fabric** to ensure that every interaction with an evidence item is **immutable, auditable, and cryptographically verifiable**. 
 
-At this stage, the smart contract defines the structure and logic interfaces for managing evidence records. The goal is to establish the foundation for our later prototype implementation.
+Each action (check-in, check-out, transfer, or removal) is recorded on the blockchain through a smart contract, providing full traceability and integrity.
 
 ---
 
@@ -55,8 +54,7 @@ At this stage, the smart contract defines the structure and logic interfaces for
 
 - **`chainguard.contract.ts`** — defines transaction functions and logic placeholders  
 - **`index.ts`** — registers the contract with Fabric runtime  
-- **`tsconfig.json`** — compiles TypeScript to CommonJS under `dist/`  
-- **Events & Access files** — currently define structure for RBAC and event flow  
+- **`tsconfig.json`** — compiles TypeScript to CommonJS under `chaincode/dist/`  
 
 > The next version will extend these to include validation and event emission.
 
@@ -74,7 +72,7 @@ At this stage, the smart contract defines the structure and logic interfaces for
 1.  **Clone this repository**
     ```bash
     git clone https://github.com/harshithananjyala/cse540-forensic-chainguard.git
-    cd forensic-chainguard
+    cd cse540-forensic-chainguard
     ```
 
 2.  **Install dependencies**
@@ -88,13 +86,22 @@ At this stage, the smart contract defines the structure and logic interfaces for
     ```
 Run the following commands from the fabric-network-setup/test-network folder
 
-4. **Create blockchain network with 2 Orgs, 1 Orderer node and 1 channel**
+4. **Create blockchain network**
     ```bash
     export PATH=${PWD}/../bin:$PATH
     export FABRIC_CFG_PATH=${PWD}/../config/
 
     ./network.sh up createChannel -c forensic-chainguard -ca
     ```
+
+    > **About the Blockchain Network**
+    > - **2 Organizations (Org1 & Org2)** — each with one peer node  
+    > - **1 Ordering Service Node** — ensures transaction ordering and block creation  
+    > - **1 Channel (`forensic-chainguard`)** — dedicated ledger for evidence records  
+    > - **Certificate Authorities (CAs)** for each organization — handle identity issuance and enrollment  
+    >
+    > The command initializes the network, creates the channel, and joins both organizations’ peers to it.  
+    > This forms the base infrastructure for deploying and invoking the **Forensic Chainguard** smart contract.
 
 5. **Deploy the chaincode**
     ```bash
