@@ -146,6 +146,8 @@ Run the following commands from the fabric-network-setup/test-network folder
     ```bash
     peer chaincode query -C forensic-chainguard -n chainguard -c '{"Args":["GetEvidenceHistory","E1"]}'
     ```
+    
+![Invoke Command Output](reference-files/command-output.png)
 
 10. **Bring down the network**
     ```bash
