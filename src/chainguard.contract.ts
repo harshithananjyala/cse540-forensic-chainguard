@@ -2,6 +2,14 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Forensic Chainguard — Draft Contract
+ * Notes:
+ *  1. Fabric has a key-value store (World State) + an immutable log (the Ledger). PUT/GET JSON provided by a deterministic "key", and Fabric keeps
+ *    a cryptographic history of every change to that key.
+ *  2. Each public method with @Transaction is an on-chain function which we can call from the CLI (invoke/query). 
+ *    @Transaction(false) = read-only; 
+ *    @Transaction() (or @Transaction(true)) = write to the ledger.
+ *  3. The Context (ctx) gives access to APIs like ctx.stub.putState/getState and ctx.stub.getHistoryForKey, which are the fundamental for CRUD and
+ *     retrieving history.
  */
 import {
   Context,
@@ -20,12 +28,10 @@ interface EvidenceRecord {
 }
 
 @Info({
-  title: "ForensicContract",
+  title: "ForensicChainguardContract",
   description: "MVP contract for a simple evidence record",
 })
 export class ForensicContract extends Contract {
-  // ---- helpers -------------------------------------------------------------
-
   private evidenceKey(ctx: Context, evidenceId: string): string {
     return ctx.stub.createCompositeKey("EVIDENCE", [evidenceId]);
   }
@@ -45,7 +51,7 @@ export class ForensicContract extends Contract {
     return Number(ts.seconds) * 1000 + Math.floor(ts.nanos / 1e6);
   }
 
-  // ---- READS ---------------------------------------------------------------
+  // Read methods
 
   @Transaction(false)
   @Returns("string")
@@ -86,7 +92,7 @@ export class ForensicContract extends Contract {
     return JSON.stringify(out);
   }
 
-  // ---- WRITE ---------------------------------------------------------------
+  // Write methods
 
   @Transaction()
   public async CreateEvidence(ctx: Context, inputJson: string): Promise<void> {

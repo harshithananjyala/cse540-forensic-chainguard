@@ -1,6 +1,10 @@
+All these commands should be run from the path where network.sh (inside test-network folder) file is present
 1. Network up (2-org test network)
     Brought up Fabric with CAs and created channel forensic-chainguard:
-    Command: ./network.sh up createChannel -c forensic-chainguard -ca
+    Command: 
+    export PATH=${PWD}/../bin:$PATH 
+    export FABRIC_CFG_PATH=${PWD}/../config/  ()
+    ./network.sh up createChannel -c forensic-chainguard -ca
 2. Chaincode project prepared (small footprint)
     Created a minimal chaincode/ folder at the repo root containing only:
         dist/ (compiled JS from your TypeScript)
@@ -8,17 +12,42 @@
     This avoided packaging node_modules/, fabric-samples/, docs, old tarballs, etc.
 3. Deployed chaincode (Node/TypeScript)
    Command: ./network.sh deployCC \
-                        -c forensic-chainguard \
-                        -ccn chainguard \
-                        -ccp /Users/ashishnc/Desktop/blockchain-cse540/cse540-forensic-chainguard/chaincode \
-                        -ccl javascript \
-                        -ccv 1.4 \
-                        -ccs 1
+                    -c forensic-chainguard \                                            
+                    -ccn chainguard \                 
+                    -ccp /Users/ashishnc/Desktop/blockchain-cse540/cse540-forensic-chainguard/chaincode \
+                    -ccl javascript \               
+                    -ccv 1.7 \                                                                                                          
+                    -ccs 4  
     Result: 1. Packaged the chaincode (chainguard_1.4: efdfffd7...a6de).
             2. Installed on peer0.org1 and peer0.org2.
             3. Approved the definition for Org1MSP and Org2MSP (sequence 1, version 1.4).
             4. Commit readiness showed both orgs true.
             5. Committed definition to channel forensic-chainguard.
-            6. Query confirmed: Version: 1.4, Sequence: 1, approvals from Org1MSP & Org2MSP.
-                        
-            
+            6. Query confirmed: Version: 1.7, Sequence: 4, approvals from Org1MSP & Org2MSP.             
+     
+            export CORE_PEER_LOCALMSPID=Org1MSP                                            
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051              
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export ORDERER_TLS_CA=${PWD}/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+export CORE_PEER_TLS_ENABLED=true
+
+peer chaincode invoke \
+            -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
+            --tls --cafile "$ORDERER_TLS_CA" \
+            -C forensic-chainguard -n chainguard \   
+            --peerAddresses localhost:7051 \
+            --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt \
+            --peerAddresses localhost:9051 \
+            --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt \
+            -c '{"Args":["CreateEvidence","{\"evidenceId\":\"E1\",\"caseIdHash\":\"abc123\",\"description\":\"mobile phone\"}"]}'
+
+peer chaincode query \ 
+            -C forensic-chainguard \
+            -n chainguard \
+            -c '{"Args":["GetEvidence","E1"]}'     
+
+peer chaincode query \ 
+  -C forensic-chainguard \
+  -n chainguard \
+  -c '{"Args":["GetEvidenceHistory","E1"]}'

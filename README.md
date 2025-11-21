@@ -15,39 +15,50 @@ At this stage, the smart contract defines the structure and logic interfaces for
 
 ---
 
-## Current Milestone — Smart Contract Draft
+## Current Project Status
 
-This repository currently contains the **draft version** of the chaincode (smart contract).
+### ✅ Implemented
+- Fabric test network setup with CAs and custom channel **(`forensic-chainguard`)**
+- Chaincode **(`chainguard`)** deployed — Version **1.7**, Sequence **4**
+- Successful invoke and query transactions:
+  - `CreateEvidence`
+  - `GetEvidence`
+  - `GetEvidenceHistory`
 
-It includes:
-- Core contract file with transaction method signatures (`chainguard.contract.ts`)
-- Role-Based Access Control (RBAC) helper (`access.control.ts`)
-- Event definitions (`chainguard.events.ts`)
-- Data types and transaction input models (`chainguard.types.ts`)
-- Project build configuration (`package.json`, `tsconfig.json`)
-- *No backend or UI components yet — those will be added in later milestones.*
+### 🔄 In Progress
+- Full implementation of lifecycle transactions  
+- Role-based access enforcement  
+- Event emission and audit improvements   
 
 ---
 
-## Architecture Overview
+## Contract and Stakeholder Interactions
 
-The contract defines a set of key operations that mirror the lifecycle of forensic evidence:
+### Implemented Interactions
+- Evidence creation, retrieval, and audit history retrieval.
 
-| Transaction | Purpose |
-|--------------|----------|
-| `CreateEvidence` | Register new evidence; encrypt sensitive fields; emit creation event |
-| `CheckOutEvidence` | Allow authorized custodian or analyst to check out evidence |
-| `TransferEvidence` | Record hand-off between custodians |
-| `CheckInEvidence` | Return evidence to storage; update location/status |
-| `RemoveEvidence` | Mark evidence as removed (soft delete, audit preserved) |
-| `GetEvidence` | Retrieve current state of evidence record |
-| `GetEvidenceHistory` | Retrieve complete audit trail from blockchain |
+### Stakeholders
 
-Each operation will later enforce:
-- **Role-based permissions** using Fabric certificate attributes  
-- **AES encryption** for sensitive identifiers (e.g., case ID)  
-- **Binary storage (protobuf)** for tamper resistance  
-- **Event emission** for traceability and integration with monitoring tools  
+| **Role** | **Access / Responsibilities** |
+|-----------|--------------------------------|
+| **Custodian** | Creates and checks in/out evidence |
+| **Analyst** | Accesses evidence for analysis |
+| **Admin** | Oversees permissions, audits, and removals |
+
+### Intended (Planned) Interactions
+- Check-in/check-out, transfer, and removal with role validation.  
+- Attribute-based access control tied to Fabric certificate attributes.  
+
+---
+
+## High-level Code Walkthrough
+
+- **`chainguard.contract.ts`** — defines transaction functions and logic placeholders  
+- **`index.ts`** — registers the contract with Fabric runtime  
+- **`tsconfig.json`** — compiles TypeScript to CommonJS under `dist/`  
+- **Events & Access files** — currently define structure for RBAC and event flow  
+
+> The next version will extend these to include validation and event emission.
 
 ---
 
@@ -75,75 +86,77 @@ Each operation will later enforce:
     ```bash
     npm run build
     ```
+Run the following commands from the fabric-network-setup/test-network folder
 
-4.  **(Optional) Package the chaincode (for deployment)**
+4. **Create blockchain network with 2 Orgs, 1 Orderer node and 1 channel**
     ```bash
-    peer lifecycle chaincode package forensic-chainguard.tar.gz \
-      --path dist \
-      --lang node \
-      --label forensic-chainguard_1
+    export PATH=${PWD}/../bin:$PATH
+    export FABRIC_CFG_PATH=${PWD}/../config/
+
+    ./network.sh up createChannel -c forensic-chainguard -ca
     ```
 
-5.  **(Optional) Install & approve (example commands; adapt to your network)**
+5. **Deploy the chaincode**
     ```bash
-    # On org peer
-    peer lifecycle chaincode install forensic-chainguard.tar.gz
-    
-    # Query installed to get PACKAGE_ID
-    peer lifecycle chaincode queryinstalled
-    
-    # Approve (replace <PACKAGE_ID>, channel name, and sequence)
-    peer lifecycle chaincode approveformyorg \
-      --channelID mychannel \
-      --name chainguard \
-      --version 1.0 \
-      --package-id <PACKAGE_ID> \
-      --sequence 1
-      
-    # Commit
-    peer lifecycle chaincode commit \
-      --channelID mychannel \
-      --name chainguard \
-      --version 1.0 \
-      --sequence 1 \
-      --peerAddresses localhost:7051 \
-      --orderer localhost:7050
+    ./network.sh deployCC \
+          -c forensic-chainguard \
+          -ccn chainguard \
+          -ccp <ABSOLUTE_PATH_TO_REPO>/chaincode \
+          -ccl javascript \
+          -ccv 1.7 \
+          -ccs 4
     ```
 
-6.  **(Optional) Invoke a draft method (will return a draft error by design)**
+6. **Set Org1 environment variables**
     ```bash
-    peer chaincode invoke -C mychannel -n chainguard -c \
-      '{"function":"CreateEvidence","Args":["{\"evidenceId\":\"EV123\",\"caseId\":\"CASE45\"}"]}'
-    
-    # Expected: "DRAFT: Not implemented"
+    export CORE_PEER_LOCALMSPID=Org1MSP
+    export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+    export CORE_PEER_ADDRESS=localhost:7051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+    export ORDERER_TLS_CA=${PWD}/organizations/ordererOrganizations/example.com/tlsca/tlsca.example.com-cert.pem
+    export CORE_PEER_TLS_ENABLED=true
     ```
 
-**Note:** Deployment commands above are placeholders to show intent; final scripts will be provided in the implementation phase.
+7. **Invoke a transaction**
+    ```bash
+    peer chaincode invoke \
+        -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
+        --tls --cafile "$ORDERER_TLS_CA" \
+        -C forensic-chainguard -n chainguard \
+        --peerAddresses localhost:7051 \
+        --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt \
+        --peerAddresses localhost:9051 \
+        --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt \
+        -c '{"Args":["CreateEvidence","{\"evidenceId\":\"E1\",\"caseIdHash\":\"abc123\",\"description\":\"mobile phone\"}"]}'
+    ```
 
-## How to Use (Draft Stage)
-At this milestone, only the function signatures and comments are available — not full implementations.
+8. **Query evidence**
+    ```bash
+    peer chaincode query -C forensic-chainguard -n chainguard -c '{"Args":["GetEvidence","E1"]}'
+    ```
 
-The chaincode exports one main contract: `ForensicChainguardContract`
-
-Future usage (via Fabric CLI or SDK) will follow the pattern shown in Step 6 above, passing a single JSON string as the transaction argument for simplicity.
-
-## Next Steps
-- Implement full logic for lifecycle transactions
-- Integrate AES encryption and transient data handling
-- Enforce RBAC using certificate attributes
-- Add querying (composite keys) and emission of events
+9. **Query evidence history**
+    ```bash
+    peer chaincode query -C forensic-chainguard -n chainguard -c '{"Args":["GetEvidenceHistory","E1"]}'
+    ```
+    
+---
 
 ## Authors / Contributors
-- **Kruthi Tirunagari** - Blockchain & Security Specialist
-- **Ashish Nadadur Chakravarthi** - Blockchain & Smart Contract Developer
-- **Shashank Gadipally** - System Admin
-- **Sree Sai Harshitha Nanjyala** - Frontend & Smart Contract Developer
-- **Sri Sai Chetana Reddy Janagan** - Testing & Validation
+- **Kruthi Tirunagari** — Blockchain & Security Specialist  
+- **Ashish Nadadur Chakravarthi** — Blockchain & Smart Contract Developer  
+- **Shashank Gadipally** — System Admin  
+- **Sree Sai Harshitha Nanjyala** — Frontend & Smart Contract Developer  
+- **Sri Sai Chetana Reddy Janagan** — Testing & Validation  
+
+---
 
 ## License
-This project is released under the Apache-2.0 License.
+This project is released under the **Apache-2.0 License**.
+
+---
 
 ## Summary
-Forensic Chainguard lays the groundwork for a trustworthy, tamper-proof evidence management system that combines cryptographic security with the transparency of blockchain.
+**Forensic Chainguard** lays the groundwork for a trustworthy, tamper-proof evidence management system that combines cryptographic security with the transparency of blockchain.  
 
-This draft represents the first technical milestone — defining the foundation for what will become a fully working Hyperledger Fabric application in later stages.
+This milestone demonstrates a working Hyperledger Fabric setup with initial invoke/query functionality and sets the stage for the next iteration — full lifecycle management with role-based security and audit trails.
