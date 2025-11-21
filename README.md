@@ -110,8 +110,8 @@ Run the following commands from the fabric-network-setup/test-network folder
           -ccn chainguard \
           -ccp <ABSOLUTE_PATH_TO_REPO>/chaincode \
           -ccl javascript \
-          -ccv 1.7 \
-          -ccs 4
+          -ccv 1.0 \
+          -ccs 1
     ```
 
 6. **Set Org1 environment variables**
@@ -151,7 +151,7 @@ Run the following commands from the fabric-network-setup/test-network folder
     ```bash
     ./network.sh down
     ```
-    
+
 ---
 
 ## Authors / Contributors
