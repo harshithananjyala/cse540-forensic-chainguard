@@ -86,7 +86,7 @@ Each action (check-in, check-out, transfer, or removal) is recorded on the block
     ```
 Run the following commands from the fabric-network-setup/test-network folder
 
-4. **Create blockchain network**
+4. **Bring up the blockchain network**
     ```bash
     export PATH=${PWD}/../bin:$PATH
     export FABRIC_CFG_PATH=${PWD}/../config/
@@ -103,7 +103,7 @@ Run the following commands from the fabric-network-setup/test-network folder
     > The command initializes the network, creates the channel, and joins both organizations’ peers to it.  
     > This forms the base infrastructure for deploying and invoking the **Forensic Chainguard** smart contract.
 
-5. **Deploy the chaincode**
+5. **Deploy the chaincode on the channel**
     ```bash
     ./network.sh deployCC \
           -c forensic-chainguard \
@@ -145,6 +145,11 @@ Run the following commands from the fabric-network-setup/test-network folder
 9. **Query evidence history**
     ```bash
     peer chaincode query -C forensic-chainguard -n chainguard -c '{"Args":["GetEvidenceHistory","E1"]}'
+    ```
+
+10. **Bring down the network**
+    ```bash
+    ./network.sh down
     ```
     
 ---
