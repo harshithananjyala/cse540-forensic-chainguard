@@ -18,7 +18,7 @@ Each action (check-in, check-out, transfer, or removal) is recorded on the block
 
 ### ✅ Implemented
 - Fabric test network setup with CAs and custom channel **(`forensic-chainguard`)**
-- Chaincode **(`chainguard`)** deployed — Version **1.7**, Sequence **4**
+- Chaincode **(`chainguard`)** deployed — Version **1.0**, Sequence **1**
 - Successful invoke and query transactions:
   - `CreateEvidence`
   - `GetEvidence`
