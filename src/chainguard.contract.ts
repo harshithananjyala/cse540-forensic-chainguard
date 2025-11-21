@@ -3,7 +3,13 @@
  *
  * Forensic Chainguard — Draft Contract
  */
-import { Context, Contract, Info, Returns, Transaction } from "fabric-contract-api";
+import {
+  Context,
+  Contract,
+  Info,
+  Returns,
+  Transaction,
+} from "fabric-contract-api";
 
 interface EvidenceRecord {
   evidenceId: string;
@@ -13,16 +19,16 @@ interface EvidenceRecord {
   updatedAt: number;
 }
 
-@Info({ title: "ForensicContract", description: "MVP contract for a simple evidence record" })
+@Info({
+  title: "ForensicContract",
+  description: "MVP contract for a simple evidence record",
+})
 export class ForensicContract extends Contract {
   // ---- helpers -------------------------------------------------------------
 
-  private evidenceKey(evidenceId: string): string {
-    return this.ctx().stub.createCompositeKey("EVIDENCE", [evidenceId]);
+  private evidenceKey(ctx: Context, evidenceId: string): string {
+    return ctx.stub.createCompositeKey("EVIDENCE", [evidenceId]);
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private ctx(): Context { return (this as any).ctx as Context; }
 
   private async put<T>(ctx: Context, key: string, value: T) {
     await ctx.stub.putState(key, Buffer.from(JSON.stringify(value)));
@@ -44,7 +50,7 @@ export class ForensicContract extends Contract {
   @Transaction(false)
   @Returns("string")
   public async GetEvidence(ctx: Context, evidenceId: string): Promise<string> {
-    const key = this.evidenceKey(evidenceId);
+    const key = this.evidenceKey(ctx, evidenceId);
     const rec = await this.get<EvidenceRecord>(ctx, key);
     if (!rec) throw new Error(`NOT_FOUND: evidence '${evidenceId}'`);
     return JSON.stringify(rec);
@@ -52,15 +58,27 @@ export class ForensicContract extends Contract {
 
   @Transaction(false)
   @Returns("string")
-  public async GetEvidenceHistory(ctx: Context, evidenceId: string): Promise<string> {
-    const key = this.evidenceKey(evidenceId);
+  public async GetEvidenceHistory(
+    ctx: Context,
+    evidenceId: string
+  ): Promise<string> {
+    const key = this.evidenceKey(ctx, evidenceId);
     const iter = await ctx.stub.getHistoryForKey(key);
 
-    const out: Array<{ txId: string; timestamp: number; isDelete: boolean; value?: EvidenceRecord }> = [];
+    const out: Array<{
+      txId: string;
+      timestamp: number;
+      isDelete: boolean;
+      value?: EvidenceRecord;
+    }> = [];
     for (let res = await iter.next(); !res.done; res = await iter.next()) {
       const r = res.value;
-      const ts = Number(r.timestamp?.seconds) * 1000 + Math.floor((r.timestamp?.nanos ?? 0) / 1e6);
-      const value = r.isDelete ? undefined : (JSON.parse(r.value.toString()) as EvidenceRecord);
+      const ts =
+        Number(r.timestamp?.seconds) * 1000 +
+        Math.floor((r.timestamp?.nanos ?? 0) / 1e6);
+      const value = r.isDelete
+        ? undefined
+        : (JSON.parse(r.value.toString()) as EvidenceRecord);
       out.push({ txId: r.txId, timestamp: ts, isDelete: r.isDelete, value });
     }
     await iter.close();
@@ -79,10 +97,12 @@ export class ForensicContract extends Contract {
     };
 
     if (!input?.evidenceId || !input?.caseIdHash) {
-      throw new Error("VALIDATION_ERROR: evidenceId and caseIdHash are required");
+      throw new Error(
+        "VALIDATION_ERROR: evidenceId and caseIdHash are required"
+      );
     }
 
-    const key = this.evidenceKey(input.evidenceId);
+    const key = this.evidenceKey(ctx, input.evidenceId);
     const exists = await this.get<EvidenceRecord>(ctx, key);
     if (exists) throw new Error(`ALREADY_EXISTS: '${input.evidenceId}'`);
 

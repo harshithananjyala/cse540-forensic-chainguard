@@ -1,0 +1,24 @@
+1. Network up (2-org test network)
+    Brought up Fabric with CAs and created channel forensic-chainguard:
+    Command: ./network.sh up createChannel -c forensic-chainguard -ca
+2. Chaincode project prepared (small footprint)
+    Created a minimal chaincode/ folder at the repo root containing only:
+        dist/ (compiled JS from your TypeScript)
+        package.json (+ package-lock.json)
+    This avoided packaging node_modules/, fabric-samples/, docs, old tarballs, etc.
+3. Deployed chaincode (Node/TypeScript)
+   Command: ./network.sh deployCC \
+                        -c forensic-chainguard \
+                        -ccn chainguard \
+                        -ccp /Users/ashishnc/Desktop/blockchain-cse540/cse540-forensic-chainguard/chaincode \
+                        -ccl javascript \
+                        -ccv 1.4 \
+                        -ccs 1
+    Result: 1. Packaged the chaincode (chainguard_1.4: efdfffd7...a6de).
+            2. Installed on peer0.org1 and peer0.org2.
+            3. Approved the definition for Org1MSP and Org2MSP (sequence 1, version 1.4).
+            4. Commit readiness showed both orgs true.
+            5. Committed definition to channel forensic-chainguard.
+            6. Query confirmed: Version: 1.4, Sequence: 1, approvals from Org1MSP & Org2MSP.
+                        
+            
