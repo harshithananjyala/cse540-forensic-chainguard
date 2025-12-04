@@ -1,8 +1,7 @@
 :root {
-  /* Palette: Forensic Blue & Slate */
-  --primary: #0f172a;       /* Dark Slate */
+  --primary: #0f172a;
   --primary-hover: #1e293b;
-  --accent: #2563eb;        /* Bright Blue */
+  --accent: #2563eb;
   --accent-hover: #1d4ed8;
   --bg-body: #f1f5f9;
   --bg-card: #ffffff;
@@ -25,7 +24,6 @@ body {
   line-height: 1.6;
 }
 
-/* --- Header --- */
 .app-header {
   background: var(--primary);
   color: white;
@@ -47,10 +45,9 @@ body {
   font-size: 0.9rem;
 }
 
-/* --- Container --- */
 .app-container {
   max-width: 800px;
-  margin: -40px auto 40px; /* Overlap header */
+  margin: -40px auto 40px;
   padding: 0 16px;
   position: relative;
   z-index: 10;
@@ -110,7 +107,6 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Typography & Layout --- */
 .card-header {
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--border);
@@ -130,7 +126,6 @@ body {
   gap: 8px;
 }
 
-/* --- Forms --- */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -179,7 +174,6 @@ textarea { min-height: 80px; resize: vertical; }
 }
 .flex-grow { flex: 1; }
 
-/* --- Buttons --- */
 button {
   cursor: pointer;
   border: none;
@@ -208,10 +202,9 @@ button {
 
 .full-width-btn { width: 100%; margin-top: 10px; }
 
-/* --- Results & Alerts --- */
 .result-box {
   margin-top: 1.5rem;
-  background: #1e293b; /* Terminal look */
+  background: #1e293b;
   color: #e2e8f0;
   padding: 1rem;
   border-radius: 6px;
@@ -241,7 +234,6 @@ button {
   border: 1px solid #475569;
 }
 
-/* --- Timeline (Chain of Custody) --- */
 .timeline-container {
   position: relative;
   padding-left: 20px;
@@ -308,7 +300,6 @@ button {
   border-radius: 4px;
 }
 
-/* --- Action Card --- */
 .action-card {
   margin-top: 2rem;
   background: #f1f5f9;

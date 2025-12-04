@@ -47,7 +47,7 @@ async function ensureIdentityInWallet() {
 }
 
 async function getGateway() {
-  const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+  const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
   const wallet = await ensureIdentityInWallet();
 
   const gateway = new Gateway();
@@ -71,11 +71,11 @@ async function withContract(fn) {
   }
 }
 
-// Create evidence on the ledger.
+// Create evidence on the ledger
 async function createEvidenceOnChain(evidenceData) {
   return withContract(async (contract) => {
     const payload = JSON.stringify(evidenceData);
-    const result = await contract.submitTransaction('CreateEvidence', payload);
+    const result = await contract.submitTransaction("CreateEvidence", payload);
     return result.toString();
   });
 }
@@ -83,7 +83,10 @@ async function createEvidenceOnChain(evidenceData) {
 // Get a single evidence record by its ID
 async function getEvidenceFromChain(evidenceId) {
   return withContract(async (contract) => {
-    const result = await contract.evaluateTransaction('GetEvidence', evidenceId);
+    const result = await contract.evaluateTransaction(
+      "GetEvidence",
+      evidenceId
+    );
     if (!result || !result.length) {
       throw new Error(`Evidence ${evidenceId} not found on chain`);
     }
@@ -94,7 +97,7 @@ async function getEvidenceFromChain(evidenceId) {
 async function getEvidenceHistoryFromChain(evidenceId) {
   return withContract(async (contract) => {
     const result = await contract.evaluateTransaction(
-      'GetEvidenceHistory',
+      "GetEvidenceHistory",
       evidenceId
     );
     return JSON.parse(result.toString());

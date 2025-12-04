@@ -72,9 +72,7 @@
             </div>
 
             <div class="form-group">
-              <label for="role"
-                >Role <span class="required">*</span></label
-              >
+              <label for="role">Role <span class="required">*</span></label>
               <div class="select-wrapper">
                 <select id="role" name="role">
                   <option value="ForensicTechnician">
@@ -87,7 +85,7 @@
             </div>
 
             <div class="form-group">
-              <label for="userId">User ID</label>
+              <label for="userId">User ID <span class="required">*</span></label>
               <input id="userId" name="userId" placeholder="e.g. Agent Smith" />
             </div>
 
@@ -164,7 +162,7 @@
                 </div>
               </div>
               <div class="form-group">
-                <label>Role</label>
+                <label>Role <span class="required">*</span></label>
                 <div class="select-wrapper">
                   <select id="actionRole" name="actionRole">
                     <option value="ForensicTechnician">
@@ -176,7 +174,7 @@
                 </div>
               </div>
               <div class="form-group">
-                <label>User ID</label>
+                <label>User ID <span class="required">*</span></label>
                 <input
                   id="actionUserId"
                   name="actionUserId"
@@ -184,7 +182,7 @@
                 />
               </div>
               <div class="form-group">
-                <label>Current Location</label>
+                <label>Current Location <span class="required">*</span></label>
                 <input
                   id="custodian"
                   name="custodian"
@@ -192,7 +190,7 @@
                 />
               </div>
               <div class="form-group">
-                <label>To Location (Transfer)</label>
+                <label>To Location (Transfer) <span class="required">*</span></label>
                 <input
                   id="toCustodian"
                   name="toCustodian"
@@ -208,10 +206,12 @@
                 />
               </div>
             </div>
-            <button type="submit" class="btn-secondary full-width-btn">
+            <button type="submit" class="btn-primary full-width-btn">
               Apply Action
             </button>
           </form>
+
+          <div id="action-result" class="result-box hidden"></div>
         </div>
       </div>
     </main>

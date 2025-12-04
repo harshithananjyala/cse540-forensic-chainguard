@@ -154,17 +154,6 @@ app.get("/api/evidence/:id", async (req, res) => {
   }
 });
 
-/**
- * POST /api/evidence/:id/action
- * Body:
- *  - actionType: "CHECKIN" | "TRANSFER" | "REMOVE"
- *  - role
- *  - userId (performedBy)
- *  - custodian       (for CHECKIN)
- *  - fromCustodian   (optional, for TRANSFER)
- *  - toCustodian     (for TRANSFER)
- *  - notes
- */
 app.post("/api/evidence/:id/action", async (req, res) => {
   const evidenceId = req.params.id;
   const {
@@ -246,9 +235,7 @@ app.post("/api/evidence/:id/action", async (req, res) => {
   }
 });
 
-/**
- * Returns lifecycle events for the given evidence ID.
- */
+// Returns lifecycle events for the given evidence ID.
 app.get("/api/evidence/:id/events", async (req, res) => {
   const evidenceId = req.params.id;
 
@@ -264,7 +251,6 @@ app.get("/api/evidence/:id/events", async (req, res) => {
   }
 });
 
-// Fallback: send index.html for any other route (for SPA-style navigation)
 app.get("*", (req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, "index.html"));
 });

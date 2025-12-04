@@ -1,8 +1,5 @@
-// frontend/main.js
-
 const API_BASE = ""; // same origin
 
-// --- UI Helpers ---
 function showLoading(element, isLoading, originalText = "") {
   if (isLoading) {
     element.innerHTML =
@@ -20,18 +17,15 @@ function showResult(element, text, isError = false) {
   element.innerHTML = text;
 }
 
-// --- Tabs logic ---
 document.querySelectorAll(".tab-button").forEach((btn) => {
   btn.addEventListener("click", () => {
     const target = btn.getAttribute("data-tab");
 
-    // Toggle Buttons
     document
       .querySelectorAll(".tab-button")
       .forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
 
-    // Toggle Content
     document
       .querySelectorAll(".tab-content")
       .forEach((c) => c.classList.remove("active"));
@@ -39,54 +33,50 @@ document.querySelectorAll(".tab-button").forEach((btn) => {
   });
 });
 
-// --- Create Evidence ---
+// Create Evidence
 const createForm = document.getElementById("create-form");
 const createResultEl = document.getElementById("create-result");
 const submitBtn = createForm.querySelector('button[type="submit"]');
 
-// --- Create Evidence Listener (Manual Navigation Version) ---
-createForm.addEventListener('submit', async (e) => {
+createForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const originalBtnText = submitBtn.innerHTML;
   showLoading(submitBtn, true);
-  createResultEl.classList.add('hidden');
+  createResultEl.classList.add("hidden");
 
   const formData = new FormData(createForm);
 
   try {
     const res = await fetch(`${API_BASE}/api/evidence`, {
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      showResult(createResultEl, `Error: ${data.error || 'Unknown error'}<br>${data.details || ''}`, true);
-    } else {
-      // 1. Show success message with the ID clearly visible
-      // We highlight the ID so it's easy to copy for the next step
-      showResult(createResultEl, 
-        `<strong>✅ Success! Evidence committed to ledger.</strong><br>
-         Please copy this ID for verification: <br>
-         <span style="font-size: 1.2em; color: var(--accent); font-weight: bold;">${data.evidenceId}</span><br><br>` + 
-         JSON.stringify(data, null, 2)
+      showResult(
+        createResultEl,
+        `⛔ Error: ${data.error || "Unknown error"}<br>${data.details || ""}`,
+        true
       );
-      
+    } else {
+      showResult(
+        createResultEl,
+        `<strong>✅ Success! Evidence committed to ledger.</strong><br>` +
+          JSON.stringify(data, null, 2)
+      );
       createForm.reset();
-      
-      // Removed: The automatic tab switch code (setTimeout) is gone.
-      // You can now explain the result to the class at your own pace.
     }
   } catch (err) {
     console.error(err);
-    showResult(createResultEl, 'Network error: ' + err.message, true);
+    showResult(createResultEl, "⛔ Network error: " + err.message, true);
   } finally {
     showLoading(submitBtn, false, originalBtnText);
   }
 });
 
-// --- View / Verify Evidence ---
+// View / Verify Evidence
 const viewForm = document.getElementById("view-form");
 const viewResultEl = document.getElementById("view-result");
 const eventsButton = document.getElementById("events-button");
@@ -100,7 +90,7 @@ viewForm.addEventListener("submit", async (e) => {
   const originalBtnText = fetchBtn.innerHTML;
   showLoading(fetchBtn, true);
   viewResultEl.classList.add("hidden");
-  eventsSection.classList.add("hidden"); // Hide events when fetching new data
+  eventsSection.classList.add("hidden");
 
   const evidenceId = document.getElementById("viewEvidenceId").value.trim();
   if (!evidenceId) {
@@ -117,7 +107,7 @@ viewForm.addEventListener("submit", async (e) => {
     if (!res.ok) {
       showResult(
         viewResultEl,
-        `Error: ${data.error || "Unknown error"}\n${data.details || ""}`,
+        `⛔ Error: ${data.error || "Unknown error"}\n${data.details || ""}`,
         true
       );
       return;
@@ -126,7 +116,7 @@ viewForm.addEventListener("submit", async (e) => {
     renderEvidenceResult(data);
   } catch (err) {
     console.error(err);
-    showResult(viewResultEl, "Network error: " + err.message, true);
+    showResult(viewResultEl, "⛔ Network error: " + err.message, true);
   } finally {
     showLoading(fetchBtn, false, originalBtnText);
   }
@@ -151,16 +141,18 @@ eventsButton.addEventListener("click", async () => {
     const data = await res.json();
 
     if (!res.ok) {
-      eventsResultEl.textContent = `Error: ${data.error || "Unknown error"}`;
+      eventsResultEl.textContent = `⛔ Error: ${data.error || "Unknown error"}`;
       return;
     }
 
     renderEventsResult(data);
   } catch (err) {
     console.error(err);
-    eventsResultEl.textContent = "Network error: " + err.message;
+    eventsResultEl.textContent = "⛔ Network error: " + err.message;
   }
 });
+
+const actionResultEl = document.getElementById("action-result");
 
 actionForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -169,13 +161,16 @@ actionForm.addEventListener("submit", async (e) => {
 
   const evidenceId = document.getElementById("viewEvidenceId").value.trim();
   if (!evidenceId) {
-    alert(
-      "Please fetch an evidence record first (enter Evidence ID and click Fetch)."
+    showResult(
+      actionResultEl,
+      "⚠️ Please fetch an evidence record first.",
+      true
     );
     return;
   }
 
   showLoading(actionBtn, true);
+  actionResultEl.classList.add("hidden");
 
   const actionType = document.getElementById("actionType").value;
   const role = document.getElementById("actionRole").value;
@@ -204,16 +199,23 @@ actionForm.addEventListener("submit", async (e) => {
     const data = await res.json();
 
     if (!res.ok) {
-      alert(`Error applying action: ${data.error || "Unknown error"}`);
+      const rawError = data.details || data.error || "Unknown Error";
+      showResult(
+        actionResultEl,
+        `<strong>⛔ Blockchain Transaction Failed:</strong>\n${rawError}`,
+        true
+      );
     } else {
-      alert(data.message || "Action applied.");
-      // Refresh events immediately
+      showResult(
+        actionResultEl,
+        `<strong>✅ Transaction Committed:</strong>\n${data.message}`
+      );
       eventsButton.click();
       actionForm.reset();
     }
   } catch (err) {
     console.error(err);
-    alert("Network error: " + err.message);
+    showResult(actionResultEl, "⛔ Network error: " + err.message, true);
   } finally {
     showLoading(actionBtn, false, originalText);
   }
@@ -250,12 +252,12 @@ function renderEvidenceResult(data) {
 
   html += statusHtml;
 
-  if (imageUrl) {
-    html += '\n<div class="image-preview">';
-    html += `<div><strong>Evidence Preview:</strong></div>`;
-    html += `<img src="${imageUrl}" alt="Evidence image" />`;
-    html += "</div>";
-  }
+  // if (imageUrl) {
+  //   html += '\n<div class="image-preview">';
+  //   html += `<div><strong>Evidence Preview:</strong></div>`;
+  //   html += `<img src="${imageUrl}" alt="Evidence image" />`;
+  //   html += "</div>";
+  // }
 
   showResult(viewResultEl, html, tampered === true);
 }
@@ -310,34 +312,31 @@ function renderEventsResult(data) {
   eventsResultEl.innerHTML = html;
 }
 
-const actionTypeSelect = document.getElementById('actionType');
-const custodianGroup = document.getElementById('custodian').closest('.form-group');
-const toCustodianGroup = document.getElementById('toCustodian').closest('.form-group');
+const actionTypeSelect = document.getElementById("actionType");
+const custodianGroup = document
+  .getElementById("custodian")
+  .closest(".form-group");
+const toCustodianGroup = document
+  .getElementById("toCustodian")
+  .closest(".form-group");
 
 // Function to toggle fields based on action
 function updateActionFields() {
   const type = actionTypeSelect.value;
-  
-  // Reset visibility
-  custodianGroup.style.display = 'block';
-  toCustodianGroup.style.display = 'block';
+  custodianGroup.style.display = "block";
+  toCustodianGroup.style.display = "block";
 
-  if (type === 'CHECKIN') {
-    // Check-in needs a location (custodian), but not a "To" location
-    toCustodianGroup.style.display = 'none';
-    document.querySelector('label[for="custodian"]').innerText = "Check-in Location";
-  } 
-  else if (type === 'TRANSFER') {
-    // Transfer needs a destination
-    custodianGroup.style.display = 'none'; // We infer current location from chain
-  } 
-  else if (type === 'REMOVE') {
-    // Remove needs neither
-    custodianGroup.style.display = 'none';
-    toCustodianGroup.style.display = 'none';
+  if (type === "CHECKIN") {
+    toCustodianGroup.style.display = "none";
+    document.querySelector('label[for="custodian"]').innerText =
+      "Check-in Location";
+  } else if (type === "TRANSFER") {
+    custodianGroup.style.display = "none";
+  } else if (type === "REMOVE") {
+    custodianGroup.style.display = "none";
+    toCustodianGroup.style.display = "none";
   }
 }
 
-// Attach listener and run once on load
-actionTypeSelect.addEventListener('change', updateActionFields);
-updateActionFields(); // Run on init
+actionTypeSelect.addEventListener("change", updateActionFields);
+updateActionFields();

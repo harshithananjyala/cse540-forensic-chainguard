@@ -12,7 +12,6 @@ import {
   Transaction,
 } from "fabric-contract-api";
 
-
 export type EvidenceStatus =
   | "CREATED"
   | "CHECKED_IN"
@@ -23,15 +22,12 @@ export interface EvidenceRecord {
   evidenceId: string;
   caseIdHash: string;
   description?: string;
-
-  // lifecycle + integrity
   status: EvidenceStatus;
   imageHash?: string;
   imageFilename?: string;
 
-  // who created / last updated
   createdBy: string;
-  role: string; // role of the last actor who updated this record
+  role: string;
   currentCustodian?: string;
 
   createdAt: number;
@@ -39,14 +35,11 @@ export interface EvidenceRecord {
 }
 
 interface CertInfo {
-  // “Dummy certificate” fields passed by the client.
-  // You can show these in your demo; they are not cryptographically validated here.
   subject?: string;
   issuer?: string;
 }
 
 interface BaseActionInput {
-  // who is performing this action, from the client
   performedBy?: string;
   role?: string;
   cert?: CertInfo;
@@ -78,7 +71,6 @@ interface RemoveInput extends BaseActionInput {
   evidenceId: string;
 }
 
-// A separate record for each lifecycle event
 interface EvidenceEvent {
   evidenceId: string;
   eventType: EvidenceStatus;
@@ -94,22 +86,18 @@ interface EvidenceEvent {
   txId: string;
 }
 
-// --- Contract ----------------------------------------------------------
-
 @Info({
   title: "ForensicChainguardContract",
   description:
     "Evidence lifecycle contract with role checks, events, and image hash tracking",
 })
 export class ForensicContract extends Contract {
-  // ------------- helpers: keys / state / time -------------------------
-
   private evidenceKey(ctx: Context, evidenceId: string): string {
     return ctx.stub.createCompositeKey("EVIDENCE", [evidenceId]);
   }
 
   private evidenceEventKey(ctx: Context, evidenceId: string, txId: string) {
-    // We use txId as a unique event id.
+    // txId is a unique event id
     return ctx.stub.createCompositeKey("EVIDENCE_EVENT", [evidenceId, txId]);
   }
 
@@ -127,8 +115,6 @@ export class ForensicContract extends Contract {
     const ts = ctx.stub.getTxTimestamp();
     return Number(ts.seconds) * 1000 + Math.floor(ts.nanos / 1e6);
   }
-
-  // ------------- helpers: auth / events -------------------------------
 
   private assertRole(role: string | undefined, allowed: string[]): void {
     if (!role) {
@@ -160,8 +146,7 @@ export class ForensicContract extends Contract {
     await this.put(ctx, key, fullEvent);
   }
 
-  // ------------- READ METHODS -----------------------------------------
-
+  // Read operations
   @Transaction(false)
   @Returns("string")
   public async GetEvidence(ctx: Context, evidenceId: string): Promise<string> {
@@ -219,31 +204,11 @@ export class ForensicContract extends Contract {
     }
     await iter.close();
 
-    // sort by timestamp just to be nice
     events.sort((a, b) => a.timestamp - b.timestamp);
     return JSON.stringify(events);
   }
 
-  // ------------- WRITE METHODS ----------------------------------------
-
-  /**
-   * Create a new evidence record.
-   *
-   * inputJson (stringified JSON) should look like:
-   * {
-   *   "evidenceId": "test1",
-   *   "caseIdHash": "...",
-   *   "description": "mobile phone",
-   *   "imageHash": "sha256...",
-   *   "imageFilename": "1234-phone.png",
-   *   "createdBy": "alice",        // from your backend -> performedBy
-   *   "role": "ForensicTechnician",
-   *   "cert": { "subject": "...", "issuer": "DemoCA" } // optional
-   * }
-   *
-   * Your backend already sends: evidenceId, caseIdHash, description,
-   * imageHash, imageFilename, createdBy, role.
-   */
+  // Write operations
   @Transaction()
   public async CreateEvidence(ctx: Context, inputJson: string): Promise<void> {
     const input = JSON.parse(inputJson) as CreateEvidenceInput;
@@ -254,7 +219,7 @@ export class ForensicContract extends Contract {
       );
     }
 
-    // simple role-based authorization
+    // RBAC
     this.assertRole(input.role, ["ForensicTechnician", "EvidenceManager"]);
 
     const key = this.evidenceKey(ctx, input.evidenceId);
@@ -292,18 +257,7 @@ export class ForensicContract extends Contract {
     });
   }
 
-  /**
-   * Check in evidence (e.g., back into storage or lab).
-   *
-   * inputJson:
-   * {
-   *   "evidenceId": "test1",
-   *   "custodian": "Lab A",
-   *   "performedBy": "alice",
-   *   "role": "ForensicTechnician",
-   *   "notes": "Returned to lab fridge"
-   * }
-   */
+  // Check in evidence (e.g., back into storage or lab).
   @Transaction()
   public async CheckInEvidence(ctx: Context, inputJson: string): Promise<void> {
     const input = JSON.parse(inputJson) as CheckInInput;
@@ -325,7 +279,8 @@ export class ForensicContract extends Contract {
     const performedBy = input.performedBy || "unknown";
 
     rec.status = "CHECKED_IN";
-    rec.currentCustodian = input.custodian || rec.currentCustodian || performedBy;
+    rec.currentCustodian =
+      input.custodian || rec.currentCustodian || performedBy;
     rec.role = input.role || rec.role;
     rec.updatedAt = now;
 
@@ -342,19 +297,7 @@ export class ForensicContract extends Contract {
     });
   }
 
-  /**
-   * Transfer evidence between custodians.
-   *
-   * inputJson:
-   * {
-   *   "evidenceId": "test1",
-   *   "fromCustodian": "Lab A",
-   *   "toCustodian": "Courtroom",
-   *   "performedBy": "bob",
-   *   "role": "EvidenceManager",
-   *   "notes": "Transported for hearing"
-   * }
-   */
+  // Transfer evidence between custodians
   @Transaction()
   public async TransferEvidence(
     ctx: Context,
@@ -368,7 +311,7 @@ export class ForensicContract extends Contract {
       );
     }
 
-    // Only EvidenceManager can transfer in this simple demo
+    // Only EvidenceManager can transfer
     this.assertRole(input.role, ["EvidenceManager"]);
 
     const key = this.evidenceKey(ctx, input.evidenceId);
@@ -402,17 +345,7 @@ export class ForensicContract extends Contract {
     });
   }
 
-  /**
-   * Mark evidence as removed (e.g., destroyed or archived off-chain).
-   *
-   * inputJson:
-   * {
-   *   "evidenceId": "test1",
-   *   "performedBy": "bob",
-   *   "role": "EvidenceManager",
-   *   "notes": "Disposed after retention period"
-   * }
-   */
+  // Mark evidence as removed (e.g., destroyed or archived off-chain)
   @Transaction()
   public async RemoveEvidence(ctx: Context, inputJson: string): Promise<void> {
     const input = JSON.parse(inputJson) as RemoveInput;
