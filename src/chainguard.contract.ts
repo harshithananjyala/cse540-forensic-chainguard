@@ -12,7 +12,6 @@ import {
   Transaction,
 } from "fabric-contract-api";
 
-// --- Types -------------------------------------------------------------
 
 export type EvidenceStatus =
   | "CREATED"

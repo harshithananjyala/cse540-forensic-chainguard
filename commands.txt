@@ -5,7 +5,7 @@
 
 # Do not run ./network.sh down, might be ok to run ./network.sh stop and start but never down
 
-./network.sh deployCC -c forensic-chainguard -ccn chainguard -ccp /Users/ashishnc/Desktop/blockchain-cse540/cse540-forensic-chainguard/chaincode -ccl javascript -ccv 1.1 -ccs 2
+./network.sh deployCC -c forensic-chainguard -ccn chainguard -ccp /Users/ashishnc/Desktop/blockchain-cse540/cse540-forensic-chainguard/chaincode -ccl javascript -ccv 1.0 -ccs 1
 
 export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=${PWD}/../config/

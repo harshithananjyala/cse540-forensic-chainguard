@@ -1,11 +1,12 @@
 // frontend/main.js
 
-const API_BASE = ''; // same origin
+const API_BASE = ""; // same origin
 
 // --- UI Helpers ---
-function showLoading(element, isLoading, originalText = '') {
+function showLoading(element, isLoading, originalText = "") {
   if (isLoading) {
-    element.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+    element.innerHTML =
+      '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
     element.disabled = true;
   } else {
     element.innerHTML = originalText;
@@ -14,31 +15,36 @@ function showLoading(element, isLoading, originalText = '') {
 }
 
 function showResult(element, text, isError = false) {
-  element.classList.remove('hidden');
-  element.style.borderColor = isError ? 'var(--status-bad)' : 'var(--accent)';
+  element.classList.remove("hidden");
+  element.style.borderColor = isError ? "var(--status-bad)" : "var(--accent)";
   element.innerHTML = text;
 }
 
 // --- Tabs logic ---
-document.querySelectorAll('.tab-button').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const target = btn.getAttribute('data-tab');
+document.querySelectorAll(".tab-button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const target = btn.getAttribute("data-tab");
 
     // Toggle Buttons
-    document.querySelectorAll('.tab-button').forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
+    document
+      .querySelectorAll(".tab-button")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
 
     // Toggle Content
-    document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
-    document.getElementById(`tab-${target}`).classList.add('active');
+    document
+      .querySelectorAll(".tab-content")
+      .forEach((c) => c.classList.remove("active"));
+    document.getElementById(`tab-${target}`).classList.add("active");
   });
 });
 
 // --- Create Evidence ---
-const createForm = document.getElementById('create-form');
-const createResultEl = document.getElementById('create-result');
+const createForm = document.getElementById("create-form");
+const createResultEl = document.getElementById("create-result");
 const submitBtn = createForm.querySelector('button[type="submit"]');
 
+// --- Create Evidence Listener (Manual Navigation Version) ---
 createForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const originalBtnText = submitBtn.innerHTML;
@@ -58,8 +64,19 @@ createForm.addEventListener('submit', async (e) => {
     if (!res.ok) {
       showResult(createResultEl, `Error: ${data.error || 'Unknown error'}<br>${data.details || ''}`, true);
     } else {
-      showResult(createResultEl, '<strong>✅ Evidence created successfully:</strong>\n' + JSON.stringify(data, null, 2));
+      // 1. Show success message with the ID clearly visible
+      // We highlight the ID so it's easy to copy for the next step
+      showResult(createResultEl, 
+        `<strong>✅ Success! Evidence committed to ledger.</strong><br>
+         Please copy this ID for verification: <br>
+         <span style="font-size: 1.2em; color: var(--accent); font-weight: bold;">${data.evidenceId}</span><br><br>` + 
+         JSON.stringify(data, null, 2)
+      );
+      
       createForm.reset();
+      
+      // Removed: The automatic tab switch code (setTimeout) is gone.
+      // You can now explain the result to the class at your own pace.
     }
   } catch (err) {
     console.error(err);
@@ -70,40 +87,46 @@ createForm.addEventListener('submit', async (e) => {
 });
 
 // --- View / Verify Evidence ---
-const viewForm = document.getElementById('view-form');
-const viewResultEl = document.getElementById('view-result');
+const viewForm = document.getElementById("view-form");
+const viewResultEl = document.getElementById("view-result");
 const eventsButton = document.getElementById("events-button");
 const eventsResultEl = document.getElementById("events-result");
 const eventsSection = document.getElementById("events-section");
 const actionForm = document.getElementById("action-form");
 const fetchBtn = viewForm.querySelector('button[type="submit"]');
 
-viewForm.addEventListener('submit', async (e) => {
+viewForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const originalBtnText = fetchBtn.innerHTML;
   showLoading(fetchBtn, true);
-  viewResultEl.classList.add('hidden');
-  eventsSection.classList.add('hidden'); // Hide events when fetching new data
+  viewResultEl.classList.add("hidden");
+  eventsSection.classList.add("hidden"); // Hide events when fetching new data
 
-  const evidenceId = document.getElementById('viewEvidenceId').value.trim();
+  const evidenceId = document.getElementById("viewEvidenceId").value.trim();
   if (!evidenceId) {
-     showLoading(fetchBtn, false, originalBtnText);
-     return;
+    showLoading(fetchBtn, false, originalBtnText);
+    return;
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/evidence/${encodeURIComponent(evidenceId)}`);
+    const res = await fetch(
+      `${API_BASE}/api/evidence/${encodeURIComponent(evidenceId)}`
+    );
     const data = await res.json();
 
     if (!res.ok) {
-      showResult(viewResultEl, `Error: ${data.error || 'Unknown error'}\n${data.details || ''}`, true);
+      showResult(
+        viewResultEl,
+        `Error: ${data.error || "Unknown error"}\n${data.details || ""}`,
+        true
+      );
       return;
     }
 
     renderEvidenceResult(data);
   } catch (err) {
     console.error(err);
-    showResult(viewResultEl, 'Network error: ' + err.message, true);
+    showResult(viewResultEl, "Network error: " + err.message, true);
   } finally {
     showLoading(fetchBtn, false, originalBtnText);
   }
@@ -111,14 +134,15 @@ viewForm.addEventListener('submit', async (e) => {
 
 eventsButton.addEventListener("click", async () => {
   const evidenceId = document.getElementById("viewEvidenceId").value.trim();
-  
+
   if (!evidenceId) {
     alert("Please enter an Evidence ID first.");
     return;
   }
-  
-  eventsSection.classList.remove('hidden');
-  eventsResultEl.innerHTML = '<div style="padding:10px; color:#64748b"><i class="fa-solid fa-spinner fa-spin"></i> Loading blockchain events...</div>';
+
+  eventsSection.classList.remove("hidden");
+  eventsResultEl.innerHTML =
+    '<div style="padding:10px; color:#64748b"><i class="fa-solid fa-spinner fa-spin"></i> Loading blockchain events...</div>';
 
   try {
     const res = await fetch(
@@ -140,12 +164,14 @@ eventsButton.addEventListener("click", async () => {
 
 actionForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const actionBtn = actionForm.querySelector('button');
+  const actionBtn = actionForm.querySelector("button");
   const originalText = actionBtn.innerHTML;
 
   const evidenceId = document.getElementById("viewEvidenceId").value.trim();
   if (!evidenceId) {
-    alert("Please fetch an evidence record first (enter Evidence ID and click Fetch).");
+    alert(
+      "Please fetch an evidence record first (enter Evidence ID and click Fetch)."
+    );
     return;
   }
 
@@ -164,7 +190,14 @@ actionForm.addEventListener("submit", async (e) => {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actionType, role, userId, custodian, toCustodian, notes }),
+        body: JSON.stringify({
+          actionType,
+          role,
+          userId,
+          custodian,
+          toCustodian,
+          notes,
+        }),
       }
     );
 
@@ -187,22 +220,32 @@ actionForm.addEventListener("submit", async (e) => {
 });
 
 function renderEvidenceResult(data) {
-  const { evidence, hashOnChain, hashLocal, tampered, imageUrl, imageExists } = data;
-  
-  let html = `<strong>Evidence Data (Blockchain):</strong>\n${JSON.stringify(evidence, null, 2)}\n\n`;
-  
-  html += `Hash on chain: ${hashOnChain || 'N/A'}\n`;
-  html += `Hash of local image: ${hashLocal || (imageExists ? 'N/A' : 'No local image')}\n\n`;
+  const { evidence, hashOnChain, hashLocal, tampered, imageUrl, imageExists } =
+    data;
 
-  let statusHtml = '';
+  let html = `<strong>Evidence Data (Blockchain):</strong>\n${JSON.stringify(
+    evidence,
+    null,
+    2
+  )}\n\n`;
+
+  html += `Hash on chain: ${hashOnChain || "N/A"}\n`;
+  html += `Hash of local image: ${
+    hashLocal || (imageExists ? "N/A" : "No local image")
+  }\n\n`;
+
+  let statusHtml = "";
   if (tampered === true) {
-    statusHtml = 'Integrity Check: <span class="status-bad"><i class="fa-solid fa-triangle-exclamation"></i> TAMPER DETECTED (Hash mismatch)</span>\n';
+    statusHtml =
+      'Integrity Check: <span class="status-bad"><i class="fa-solid fa-triangle-exclamation"></i> TAMPER DETECTED (Hash mismatch)</span>\n';
   } else if (tampered === false) {
-    statusHtml = 'Integrity Check: <span class="status-ok"><i class="fa-solid fa-check-circle"></i> VERIFIED (Hashes match)</span>\n';
+    statusHtml =
+      'Integrity Check: <span class="status-ok"><i class="fa-solid fa-check-circle"></i> VERIFIED (Hashes match)</span>\n';
   } else if (!imageExists) {
-    statusHtml = 'Integrity Check: <span class="status-bad">No local image found to verify against.</span>\n';
+    statusHtml =
+      'Integrity Check: <span class="status-bad">No local image found to verify against.</span>\n';
   } else {
-    statusHtml = 'Integrity Check: Unknown.\n';
+    statusHtml = "Integrity Check: Unknown.\n";
   }
 
   html += statusHtml;
@@ -211,7 +254,7 @@ function renderEvidenceResult(data) {
     html += '\n<div class="image-preview">';
     html += `<div><strong>Evidence Preview:</strong></div>`;
     html += `<img src="${imageUrl}" alt="Evidence image" />`;
-    html += '</div>';
+    html += "</div>";
   }
 
   showResult(viewResultEl, html, tampered === true);
@@ -238,14 +281,20 @@ function renderEventsResult(data) {
             <span class="timeline-date"><i class="fa-regular fa-calendar"></i> ${date}</span>
           </div>
           <div class="timeline-meta">
-            <i class="fa-solid fa-user-shield"></i> <strong>${ev.performedBy || "unknown"}</strong>
+            <i class="fa-solid fa-user-shield"></i> <strong>${
+              ev.performedBy || "unknown"
+            }</strong>
             <span style="opacity:0.7">(${ev.role || "N/A"})</span>
           </div>
           ${
             ev.fromCustodian || ev.toCustodian
               ? `<div class="timeline-meta">
                    <i class="fa-solid fa-location-dot"></i> Custody: 
-                   ${ev.fromCustodian ? `<em>${ev.fromCustodian}</em> <i class="fa-solid fa-arrow-right-long"></i> ` : ""}
+                   ${
+                     ev.fromCustodian
+                       ? `<em>${ev.fromCustodian}</em> <i class="fa-solid fa-arrow-right-long"></i> `
+                       : ""
+                   }
                    <em>${ev.toCustodian || "N/A"}</em>
                  </div>`
               : ""
@@ -260,3 +309,35 @@ function renderEventsResult(data) {
   html += "</ul>";
   eventsResultEl.innerHTML = html;
 }
+
+const actionTypeSelect = document.getElementById('actionType');
+const custodianGroup = document.getElementById('custodian').closest('.form-group');
+const toCustodianGroup = document.getElementById('toCustodian').closest('.form-group');
+
+// Function to toggle fields based on action
+function updateActionFields() {
+  const type = actionTypeSelect.value;
+  
+  // Reset visibility
+  custodianGroup.style.display = 'block';
+  toCustodianGroup.style.display = 'block';
+
+  if (type === 'CHECKIN') {
+    // Check-in needs a location (custodian), but not a "To" location
+    toCustodianGroup.style.display = 'none';
+    document.querySelector('label[for="custodian"]').innerText = "Check-in Location";
+  } 
+  else if (type === 'TRANSFER') {
+    // Transfer needs a destination
+    custodianGroup.style.display = 'none'; // We infer current location from chain
+  } 
+  else if (type === 'REMOVE') {
+    // Remove needs neither
+    custodianGroup.style.display = 'none';
+    toCustodianGroup.style.display = 'none';
+  }
+}
+
+// Attach listener and run once on load
+actionTypeSelect.addEventListener('change', updateActionFields);
+updateActionFields(); // Run on init
