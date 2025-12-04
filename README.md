@@ -1,11 +1,11 @@
 # Forensic Chainguard
-### A Blockchain-Based Chain of Custody System for Digital Forensic Evidence
+### A Blockchain-Based Chain of Custody System for Digital Forensics
 
 ---
 
-## Project Description
+## ⭐ Overview
 
-**Forensic Chainguard** is a blockchain-powered system designed to securely manage the lifecycle of forensic evidence — from collection to transfer, analysis, and final storage.  
+**Forensic Chainguard** is a complete chain-of-custody management platform built on **Hyperledger Fabric**. It is a blockchain-powered system designed to securely manage the lifecycle of forensic evidence — from collection to transfer, analysis, and final storage.  
 Traditional chain-of-custody processes rely heavily on manual records and centralized databases, which can be vulnerable to tampering or human error.
 
 This project uses **Hyperledger Fabric** to ensure that every interaction with an evidence item is **immutable, auditable, and cryptographically verifiable**. 
@@ -26,8 +26,7 @@ Each action (check-in, check-out, transfer, or removal) is recorded on the block
 
 ### 🔄 In Progress
 - Full implementation of lifecycle transactions  
-- Role-based access enforcement  
-- Event emission and audit improvements   
+- Role-based access enforcement    
 
 ---
 
@@ -40,14 +39,10 @@ Each action (check-in, check-out, transfer, or removal) is recorded on the block
 
 | **Role** | **Access / Responsibilities** |
 |-----------|--------------------------------|
-| **Custodian** | Creates and checks in/out evidence |
-| **Analyst** | Accesses evidence for analysis |
-| **Admin** | Oversees permissions, audits, and removals |
-
-### Intended (Planned) Interactions
-- Check-in/check-out, transfer, and removal with role validation.  
-- Attribute-based access control tied to Fabric certificate attributes.  
-
+| **Forensic Technician** | Creates evidence and can check-in evidence|
+| **Evidence Manager** | Checks-in/Transfer/Remove evidence |
+| **Viewer** | Read-only access |
+  
 ---
 
 ## High-level Code Walkthrough
