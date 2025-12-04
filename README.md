@@ -10,7 +10,7 @@ Traditional chain-of-custody processes rely heavily on manual records and centra
 
 This project uses **Hyperledger Fabric** to ensure that every interaction with an evidence item is **immutable, auditable, and cryptographically verifiable**. 
 
-Each action (check-in, check-out, transfer, or removal) is recorded on the blockchain through a smart contract, providing full traceability and integrity.
+Each action (check-in, transfer, or removal) is recorded on the blockchain through a smart contract, providing full traceability and integrity.
 
 ---
 
