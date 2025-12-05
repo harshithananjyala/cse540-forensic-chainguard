@@ -17,16 +17,15 @@ Each action (check-in, transfer, or removal) is recorded on the blockchain throu
 ## Current Project Status
 
 ### ✅ Implemented
-- Fabric test network setup with CAs and custom channel **(`forensic-chainguard`)**
+- Fabric test network setup with custom channel **(`forensic-chainguard`)**
 - Chaincode **(`chainguard`)** deployed — Version **1.0**, Sequence **1**
 - Successful invoke and query transactions:
   - `CreateEvidence`
   - `GetEvidence`
   - `GetEvidenceHistory`
-
-### 🔄 In Progress
-- Full implementation of lifecycle transactions  
-- Role-based access enforcement    
+- Full implementation of evidence lifecycle transactions
+- Role-based access enforcement
+- Image hashing and tampering detection
 
 ---
 
@@ -49,7 +48,7 @@ Each action (check-in, transfer, or removal) is recorded on the blockchain throu
 
 - **`chainguard.contract.ts`** — defines transaction functions and logic placeholders  
 - **`index.ts`** — registers the contract with Fabric runtime  
-- **`tsconfig.json`** — compiles TypeScript to CommonJS under `chaincode/dist/`  
+- **`tsconfig.json`** — compiles TypeScript to CommonJS under `chaincode/dist/`
 
 > The next version will extend these to include validation and event emission.
 
@@ -83,17 +82,13 @@ Run the following commands from the fabric-network-setup/test-network folder
 
 4. **Bring up the blockchain network**
     ```bash
-    export PATH=${PWD}/../bin:$PATH
-    export FABRIC_CFG_PATH=${PWD}/../config/
-
-    ./network.sh up createChannel -c forensic-chainguard -ca
+    ./network.sh up createChannel -c forensic-chainguard
     ```
 
     > **About the Blockchain Network**
     > - **2 Organizations (Org1 & Org2)** — each with one peer node  
     > - **1 Ordering Service Node** — ensures transaction ordering and block creation  
-    > - **1 Channel (`forensic-chainguard`)** — dedicated ledger for evidence records  
-    > - **Certificate Authorities (CAs)** for each organization — handle identity issuance and enrollment  
+    > - **1 Channel (`forensic-chainguard`)** — dedicated ledger for evidence records   
     >
     > The command initializes the network, creates the channel, and joins both organizations’ peers to it.  
     > This forms the base infrastructure for deploying and invoking the **Forensic Chainguard** smart contract.
@@ -144,7 +139,14 @@ Run the following commands from the fabric-network-setup/test-network folder
     
 ![Invoke Command Output](reference-files/command-output.png)
 
-10. **Bring down the network**
+
+10. **Backend setup**
+    ```bash
+    cd backend/
+    npm start
+    ```
+
+11. **Bring down the network**
     ```bash
     ./network.sh down
     ```
